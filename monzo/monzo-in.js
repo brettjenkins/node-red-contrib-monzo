@@ -176,6 +176,8 @@ module.exports = function(RED) {
     function MonzoNodeIn(config) {
         RED.nodes.createNode(this, config);
         this.requesttype = config.requesttype;
+        this.potid = config.potid;
+        this.accountid = config.accountid;
         this.monzoConfig = RED.nodes.getNode(config.monzocreds);
         const Monzo = require('monzo-js');
         var node = this;
@@ -201,6 +203,19 @@ module.exports = function(RED) {
             this.monzoConfig = RED.nodes.getNode(config.monzocreds);
             var monzocredentials = RED.nodes.getCredentials(config.monzocreds);
             
+            if (msg.potid != "" && msg.potid != undefined) {
+                this.potid = msg.potid;
+            }
+            if (msg.accountid != "" && msg.accountid != undefined) {
+                this.accountid = msg.accountid;
+            }
+            if (msg.requesttype != "" && msg.requesttype != undefined) {
+                orig_requesttype = msg.requesttype;
+                var type = config.requesttype;
+                var typesplit = type.split('-');
+                this.requesttype = typesplit[0];
+            }
+
             this.status({
                 fill: "yellow",
                 shape: "dot",
@@ -226,10 +241,11 @@ module.exports = function(RED) {
                 if (this.requesttype == "accounts") {
                     monzo.accounts.all().then(accounts => {
                         for (const [id, acc] of accounts) {
-                            msg.payload = {
+                            var newMsg = Object.assign({}, msg);
+                            newMsg.payload = {
                                 "response": acc._account
                             };
-                            node.send(msg);
+                            node.send(newMsg);
                             this.status({
                                 fill: "green",
                                 shape: "dot",
@@ -251,10 +267,12 @@ module.exports = function(RED) {
                 if (this.requesttype == "balances") {
                     monzo.accounts.all().then(accounts => {
                         for (const [id, acc] of accounts) {
-                            msg.payload = {
+                            var newMsg = Object.assign({}, msg);
+                            newMsg.payload = {
+                                "account": acc.id,
                                 "response": acc._balance._balance
                             };
-                            node.send(msg);
+                            node.send(newMsg);
                             this.status({
                                 fill: "green",
                                 shape: "dot",
@@ -274,16 +292,18 @@ module.exports = function(RED) {
                 Pots request
                  */
                 if (this.requesttype == "pots") {
-                    monzo.pots.all().then(pots => {
-                        for (const [id, pot] of pots) {
-                            msg.payload = {
+                    monzo.pots.all(this.accountid).then(pots => {
+                        for (const [id, pot] of pots) {   
+                            var newMsg = Object.assign({}, msg);
+                            newMsg.payload = {
                                 "response": {
                                     "pot_id": pot.id,
                                     "pot_name": pot.name,
-                                    "pot_balance": pot.balance
+                                    "pot_balance": pot.balance,
+                                    "pot_goal_amount": pot._pot.goal_amount
                                 }
                             };
-                            node.send(msg);
+                            node.send(newMsg);
                             this.status({
                                 fill: "green",
                                 shape: "dot",
@@ -291,6 +311,84 @@ module.exports = function(RED) {
                             });
                         }
                     }).catch(error => {
+                        node.error("your token is not authenticated. -> "+error, msg);
+                        this.status({
+                            fill: "red",
+                            shape: "dot",
+                            text: "no auth"
+                        });
+                    });
+                }
+                /*
+                Pot request
+                 */
+                if (this.requesttype == "pot") {
+                    monzo.pots.find(this.potid, this.accountid).then(pot => {
+                            var newMsg = Object.assign({}, msg);
+                            newMsg.payload = {
+                                "response": {
+                                    "pot_id": pot.id,
+                                    "pot_name": pot.name,
+                                    "pot_balance": pot.balance,
+                                    "pot_goal_amount": pot._pot.goal_amount
+                                }
+                            };
+                            node.send(newMsg);
+                            this.status({
+                                fill: "green",
+                                shape: "dot",
+                                text: "ready"
+                            });
+                    }).catch(error => {
+                        node.error("your token is not authenticated. -> "+error, msg);
+                        this.status({
+                            fill: "red",
+                            shape: "dot",
+                            text: "no auth"
+                        });
+                    });
+                }
+                /*
+                Transactions request
+                 */
+                if (this.requesttype == "transactions") {
+                    // Get account
+                    monzo.accounts.find(this.accountid).then(account => {                    
+                        var d = new Date();
+                        d.setDate(d.getDate() - 89);
+                        d = d.toISOString();
+                        account.transactions.since(d).then(transactions => {
+
+                            var arr = [];
+                            for (const [id, transaction] of transactions) {
+                                arr.push({
+                                    "id": transaction.id,
+                                    "account_balance": transaction._transaction.account_balance,
+                                    "amount": transaction._transaction.amount,
+                                    "created": transaction._transaction.created,
+                                    "currency": transaction._transaction.currency,
+                                    "description": transaction._transaction.description,
+                                    "merchant": transaction._transaction.merchant,
+                                    "metadata": transaction._transaction.metadata,
+                                    "notes": transaction._transaction.notes,
+                                    "is_load": transaction._transaction.is_load,
+                                    "settled": transaction._transaction.settled,
+                                    "category": transaction._transaction.category,
+                                    "amount_is_pending": transaction._transaction.amount_is_pending
+                                })
+                            }
+                            var newMsg = Object.assign({}, msg);
+                            newMsg.payload = {
+                                "response": arr
+                            };
+                            node.send(newMsg)
+                            this.status({
+                                fill: "green",
+                                shape: "dot",
+                                text: "ready"
+                            });
+                          });
+                      }).catch(error => {
                         node.error("your token is not authenticated. -> "+error, msg);
                         this.status({
                             fill: "red",
