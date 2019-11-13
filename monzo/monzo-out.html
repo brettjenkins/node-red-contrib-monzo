@@ -10,6 +10,8 @@
             requesttype:{value:""},
             potid:{value:""},
             amount:{value:0},
+            transid:{value:""},
+            annotatedata:{value:""},
         },
         inputs:1,
         outputs:1,
@@ -31,6 +33,9 @@
                 if(val == "deposit-pot" || val == "withdraw-pot"){
                     $('.amount-row').show();
                     $('.potid-row').show();
+                }
+                if(val == "annotate-trans"){
+                    $('.annotate-row').show();
                 }
 
             });
@@ -58,6 +63,7 @@
         <select id="node-input-requesttype">
             <option value="deposit-pot">pot deposit</option>
             <option value="withdraw-pot">pot withdraw</option>
+            <option value="annotate-trans">annotate transaction</option>
         </select>
     </div>
     <div class="form-row potid-row hidden-row-item" style="display:none;">
@@ -67,6 +73,12 @@
     <div class="form-row amount-row hidden-row-item" style="display:none;">
         <label for="node-input-amount"><i class="icon-tag"></i> Amount</label>
         <input type="number" id="node-input-amount" placeholder="Node Name">
+    </div>
+    <div class="form-row annotate-row hidden-row-item" style="display:none;">
+        <label for="node-input-transid"><i class="icon-tag"></i> Transaction Id</label>
+        <input type="text" id="node-input-transid" placeholder="Data">
+        <label for="node-input-annotatedata"><i class="icon-tag"></i> Data</label>
+        <input type="text" id="node-input-annotatedata" placeholder="Data">
     </div>
     You dont have to input data here, you can set the variables dynamically in the msg. See node help for more<br><br>
 
