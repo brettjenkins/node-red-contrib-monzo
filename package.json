@@ -1,28 +1,67 @@
 {
+  "_from": "node-red-contrib-monzo@1.2.0",
+  "_id": "node-red-contrib-monzo@1.2.0",
+  "_inBundle": false,
+  "_integrity": "sha512-2nvRu/AVmFqbPtT/aqsPZDnz+QRtV3Bg+bV+XvDe0jXnzOkP5u1BSaBiwJf9Xr8oMNpeGh0hBGqUQa75SLIhHg==",
+  "_location": "/node-red-contrib-monzo",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "node-red-contrib-monzo@1.2.0",
     "name": "node-red-contrib-monzo",
-    "version": "1.2.0",
-    "description": "This is a wrapper that will allow a connection to the monzo bank API for use within node-red",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Sheaffy/node-red-contrib-monzo"
-    },
-    "keywords": ["node-red", "nodered", "monzo", "mondo", "bank", "api"],
-    "author": "Ashley Sheaff",
-    "license": "MIT",
-    "dependencies": {
-        "monzo-js": "git+https://github.com/Sheaffy/monzo-js.git",
-        "request": "^2.88.0",
-        "querystring":"^0.2.0",
-        "cron":"^1.5.0"
-    },
-    "node-red": {
-        "nodes": {
-            "monzo-in": "monzo/monzo-in.js",
-            "monzo-out": "monzo/monzo-out.js",
-            "monzo-webhook": "monzo/monzo-webhook.js"
-        }
+    "escapedName": "node-red-contrib-monzo",
+    "rawSpec": "1.2.0",
+    "saveSpec": null,
+    "fetchSpec": "1.2.0"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/node-red-contrib-monzo/-/node-red-contrib-monzo-1.2.0.tgz",
+  "_shasum": "0fe78c060fc09bdeeff04a38de087d12a9e476dd",
+  "_spec": "node-red-contrib-monzo@1.2.0",
+  "_where": "/data",
+  "author": {
+    "name": "Ashley Sheaff"
+  },
+  "bugs": {
+    "url": "https://github.com/Sheaffy/node-red-contrib-monzo/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "cron": "^1.5.0",
+    "monzo-js": "git+https://github.com/Sheaffy/monzo-js.git",
+    "querystring": "^0.2.0",
+    "request": "^2.88.0"
+  },
+  "deprecated": false,
+  "description": "This is a wrapper that will allow a connection to the monzo bank API for use within node-red",
+  "homepage": "https://github.com/Sheaffy/node-red-contrib-monzo#readme",
+  "keywords": [
+    "node-red",
+    "nodered",
+    "monzo",
+    "mondo",
+    "bank",
+    "api"
+  ],
+  "license": "MIT",
+  "name": "node-red-contrib-monzo",
+  "node-red": {
+    "nodes": {
+      "monzo-in": "monzo/monzo-in.js",
+      "monzo-out": "monzo/monzo-out.js",
+      "monzo-webhook": "monzo/monzo-webhook.js"
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sheaffy/node-red-contrib-monzo.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.2.0"
 }
