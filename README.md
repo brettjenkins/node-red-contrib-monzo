@@ -4,6 +4,7 @@ This is a fork of Sheaffys node-red-contrib-monzo nodered. I've added some featu
 * Ability to return transactions from last 30 days 
 * Ability to pass in params in all situations
 * Ability to only return a specific pot
+* Bunch of bug fixes
 
 Note. This repo will require you also use my fork of MonzoJS as they kind of go hand in hand.
 
