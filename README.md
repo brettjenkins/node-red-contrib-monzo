@@ -1,3 +1,12 @@
+This is a fork of Sheaffys node-red-contrib-monzo nodered. I've added some features I needed such as
+
+* Ability to annotate a transaction (store metadata against one)
+* Ability to return transactions from last 30 days 
+* Ability to pass in params in all situations
+* Ability to only return a specific pot
+
+Note. This repo will require you also use my fork of MonzoJS as they kind of go hand in hand.
+
 # node-red-contrib-monzo
 
 ### This is a node-red package that will allow you to retrive information from monzo. (this is not an official node developed by monzo)
