@@ -9,18 +9,16 @@ module.exports = function(RED) {
         RED.nodes.createNode(this, config);
         var node = this;
         this.monzoConfig = RED.nodes.getNode(config.monzocreds);
-        var monzocredentials = RED.nodes.getCredentials(config.monzocreds);
+        
         var currentDeDupe = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         //console.log(currentDeDupe);
         if (this.monzoConfig) {
-            if (monzocredentials.token != "") {
                 // We have a token, lets first request all
                 this.status({
                     fill: "green",
                     shape: "dot",
                     text: "ready"
                 });
-            }
         } else {
             this.status({
                 fill: "red",
@@ -29,7 +27,27 @@ module.exports = function(RED) {
             });
         }
         node.on('input', function(msg) {
-         
+            this.monzoConfig = RED.nodes.getNode(config.monzocreds);
+            var monzocredentials = RED.nodes.getCredentials(config.monzocreds);
+
+            if (this.monzoConfig) {
+                if (monzocredentials.token != "") {
+                    // We have a token, lets first request all
+                    this.status({
+                        fill: "green",
+                        shape: "dot",
+                        text: "ready"
+                    });
+                }
+            } else {
+                this.status({
+                    fill: "red",
+                    shape: "dot",
+                    text: "no token"
+                });
+            }
+            console.log(monzocredentials.token); 
+
             this.status({
                 fill: "yellow",
                 shape: "dot",
@@ -70,6 +88,25 @@ module.exports = function(RED) {
             if (msg.amount != "" && msg.amount != undefined) {
                 amount_value = msg.amount;
             }
+            var annotatedata = "";
+            if (config.annotatedata != "" && config.annotatedata != undefined) {
+                try{
+                annotatedata = JSON.parse(config.annotatedata);
+                }
+                catch(err){
+                    console.log(err);
+                }
+            }
+            if (msg.annotatedata != "" && msg.annotatedata != undefined) {
+                annotatedata = msg.annotatedata;
+            }
+            var transid = "";
+            if (config.transid != "") {
+                transid = config.transid;
+            }
+            if (msg.transactionid != "" && msg.transactionid != undefined) {
+                transid = msg.transactionid;
+            }
 
 
             if (this.monzoConfig) {
@@ -79,7 +116,7 @@ module.exports = function(RED) {
                     //initialise met requirements as false.
                     var met_requirements = false;
 
-
+                    var method = "PUT";
                     if (orig_requesttype == "deposit-pot" || orig_requesttype == "withdraw-pot") {
                         //check to see if all requorements have been met for the request type.
                         if (potid != "" && orig_requesttype != "" && accountid != "" && amount_value != "") {
@@ -102,11 +139,26 @@ module.exports = function(RED) {
                         }
                     }
 
+                    if(orig_requesttype == "annotate-trans"){
+                        method = "PATCH";
+                        opts.url = "https://api.monzo.com/transactions/" + transid;
+                        postvars = "";
+                        var i = 0;
+                        Object.keys(annotatedata).forEach(key=>{
+                            console.log(`metadata[${key}]=${annotatedata[key]}`);
+                            if(i > 0){ 
+                                postvars += "&";
+                            }
+                            postvars += `metadata[${key}]=${annotatedata[key]}`;                            
+                            i++;
+                        });                        
+                        met_requirements = true;                        
+                    }
 
                     //if all requirements for a request is met, send it out.
                     if (met_requirements == true) {
                         opts.timeout = 2000;
-                        opts.method = "PUT";
+                        opts.method = method;
                         opts.headers = {
                             Authorization: 'Bearer ' + monzocredentials.token
                         }
@@ -123,7 +175,7 @@ module.exports = function(RED) {
                             } else {
                                 var bodyObject = JSON.parse(body);
                                 //console.log(bodyObject);
-                                if (!bodyObject.id) {
+                                if (!bodyObject.id && orig_requesttype != "annotate-trans") {
 
                                     node.status({
                                         fill: "red",
