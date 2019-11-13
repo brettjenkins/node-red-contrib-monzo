@@ -6,7 +6,7 @@ This is a fork of Sheaffys node-red-contrib-monzo nodered. I've added some featu
 * Ability to only return a specific pot
 * Bunch of bug fixes
 
-Note. This repo will require you also use my fork of MonzoJS as they kind of go hand in hand.
+Note. This repo will require you also use my fork of MonzoJS as they kind of go hand in hand. Also note that I haven't updated the package.json at the moment, so you'll need to download the files and manually replace them in the node_modules folder of nodered (then restart nodered)
 
 # node-red-contrib-monzo
 
