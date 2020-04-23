@@ -16,12 +16,13 @@ module.exports = function(RED) {
          */
         this.cronjob = new CronJob('1 */60 * * * *', function() { // Cron Job Once Per Hour, This Needs to be vairable later on.
             const Monzo = require('monzo-js');
+            console.log("[monzo] - node id: " + node.id);
             var creds = RED.nodes.getCredentials(node.id);
             var secret = creds.secret;
             var clientid = creds.client_id;
             var refreshtoken = creds.refreshtoken;
             if (refreshtoken != "" && refreshtoken != undefined) {
-                console.log("[monzo] - refreshing token");
+                console.log("[monzo] - refreshing token\nOld Refresh Token: " + refreshtoken + "\nSecret: " + secret + "\nClient id:" + clientid);
 
                 /*
                 Using monzojs, refresh the token and retreive the access_token and refresh_token
@@ -31,7 +32,7 @@ module.exports = function(RED) {
                     refresh_token
                 }) => {
                     if (access_token) {
-                        console.log("[monzo] - refresh complete");
+                        console.log("[monzo] - refresh complete \nRefresh Token: " + refresh_token + "\nAccess Token: " + access_token + "\nSecret:" + secret + "\nClient id: " + clientid );
                         var credentials = {
                             client_id: clientid,
                             secret: secret,
@@ -43,10 +44,11 @@ module.exports = function(RED) {
                         console.log("[monzo] - refresh failed");
                     }
                 }).catch(error => {
-                    //console.log("[monzo] - refresh failed, needs reauthenticating");
+                    console.log("[monzo] - refresh failed, needs reauthenticating - " + error + "\n\n" + JSON.stringify(error));
                 });
             } else {
                 //no refresh token dont bother trying to refresh it.
+                console.log("[monzo] - no refresh token dont bother trying to refresh it.");
             }
         }, null, true, 'America/Los_Angeles');
     }
@@ -145,26 +147,31 @@ module.exports = function(RED) {
                 /*
                 No errors Set tokens and display to the user it was successful and what the next step is.
                  */
-                var bodyObject = JSON.parse(body);
-                var additional_text = "";
-                if (bodyObject.refresh_token) {
-                    additional_text = "<br>This API client has Confidential set to True, because of this, your access_token will automatically refresh itself.";
-                } else {
-                    //console.log('no refresh token');
-                    additional_text = "<br>This token will expire and you will need to manually refresh it. This is because your Monzo API client is set to (Not Confidential).";
-                }
-                if (bodyObject.access_token) {
-                    var credentials = {
-                        client_id: monzocreds.client_id,
-                        secret: monzocreds.secret,
-                        token: bodyObject.access_token,
-                        refreshtoken: bodyObject.refresh_token
-                    };
-                    RED.nodes.addCredentials(credential_node_id, credentials);
-                    res.send("<center><h1>You have successfully authenticated.</h1><h3>Please return to your node-red flow and close this tab/window, you will see that the 'access_token' is now filled in.</h3>" + additional_text + "</center>");
-                } else {
-                    //something went wrong, show error.
-                    res.send(body);
+                if(body.trim().length > 0){
+
+                    var bodyObject = JSON.parse(body);
+                    var additional_text = "";
+                    if (bodyObject.refresh_token) {
+                        additional_text = "<br>This API client has Confidential set to True, because of this, your access_token will automatically refresh itself.";
+                    } else {
+                        //console.log('no refresh token');
+                        additional_text = "<br>This token will expire and you will need to manually refresh it. This is because your Monzo API client is set to (Not Confidential).";
+                    }
+                    if (bodyObject.access_token) {
+                        var credentials = {
+                            client_id: monzocreds.client_id,
+                            secret: monzocreds.secret,
+                            token: bodyObject.access_token,
+                            refreshtoken: bodyObject.refresh_token
+                        };
+                        RED.nodes.addCredentials(credential_node_id, credentials);
+                        res.send("<center><h1>You have successfully authenticated.</h1><h3>Please return to your node-red flow and close this tab/window, you will see that the 'access_token' is now filled in.</h3>" + additional_text + "</center>");
+                    } else {
+                        //something went wrong, show error.
+                        res.send(body);
+                    }
+                }else{
+                    console.log("[monzo] - Ignoring empty body")
                 }
             }
         });
@@ -202,6 +209,7 @@ module.exports = function(RED) {
         node.on('input', function(msg) {
             this.monzoConfig = RED.nodes.getNode(config.monzocreds);
             var monzocredentials = RED.nodes.getCredentials(config.monzocreds);
+            console.log("[monzo] - monzo node in - credentials are: " + JSON.stringify(monzocredentials));
             
             if (msg.potid != "" && msg.potid != undefined) {
                 this.potid = msg.potid;
